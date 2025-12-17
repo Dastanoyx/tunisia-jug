@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { Brand } from "./brand";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -14,7 +16,15 @@ const links = [
     { href: "/contact", label: "Contact" },
 ];
 
+function isActive(pathname: string, href: string) {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+}
+
 export function SiteNav() {
+    const pathname = usePathname();
+    const [open, setOpen] = useState(false);
+
     return (
         <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-800/90 text-white backdrop-blur">
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
@@ -22,16 +32,23 @@ export function SiteNav() {
                     <Brand tone="onDark" />
                 </Link>
 
+                {/* Desktop */}
                 <nav className="hidden items-center gap-6 md:flex">
-                    {links.map((l) => (
-                        <Link
-                            key={l.href}
-                            href={l.href}
-                            className="text-sm font-medium text-white/80 transition-colors hover:text-white"
-                        >
-                            {l.label}
-                        </Link>
-                    ))}
+                    {links.map((l) => {
+                        const active = isActive(pathname, l.href);
+                        return (
+                            <Link
+                                key={l.href}
+                                href={l.href}
+                                className={[
+                                    "text-sm font-medium transition-colors",
+                                    active ? "text-white" : "text-white/80 hover:text-white",
+                                ].join(" ")}
+                            >
+                                {l.label}
+                            </Link>
+                        );
+                    })}
 
                     <Button
                         asChild
@@ -42,8 +59,9 @@ export function SiteNav() {
                     </Button>
                 </nav>
 
+                {/* Mobile */}
                 <div className="md:hidden">
-                    <Sheet>
+                    <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>
                             <Button
                                 variant="outline"
@@ -55,19 +73,40 @@ export function SiteNav() {
                             </Button>
                         </SheetTrigger>
 
-                        <SheetContent side="right" className="w-80">
+                        <SheetContent
+                            side="right"
+                            className="w-80 border-white/10 bg-slate-900 text-white"
+                        >
                             <div className="mb-6">
-                                <Brand />
+                                <Brand tone="onDark" />
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                {links.map((l) => (
-                                    <Button key={l.href} asChild variant="ghost" className="justify-start">
-                                        <Link href={l.href}>{l.label}</Link>
-                                    </Button>
-                                ))}
+                                {links.map((l) => {
+                                    const active = isActive(pathname, l.href);
+                                    return (
+                                        <Button
+                                            key={l.href}
+                                            asChild
+                                            variant="ghost"
+                                            className={[
+                                                "justify-start rounded-xl",
+                                                active
+                                                    ? "bg-white/10 text-white hover:bg-white/15"
+                                                    : "text-white/80 hover:bg-white/10 hover:text-white",
+                                            ].join(" ")}
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            <Link href={l.href}>{l.label}</Link>
+                                        </Button>
+                                    );
+                                })}
 
-                                <Button asChild className="mt-2">
+                                <Button
+                                    asChild
+                                    className="mt-2 rounded-xl bg-white/10 text-white hover:bg-white/20"
+                                    onClick={() => setOpen(false)}
+                                >
                                     <Link href="/join">Join</Link>
                                 </Button>
                             </div>
